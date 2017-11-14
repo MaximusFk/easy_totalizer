@@ -1,0 +1,31 @@
+apply plugin: 'application'
+
+mainClassName = 'com.easytotalizer.MainWindow'
+
+repositories {
+    jcenter()
+    mavenCentral()
+}
+
+dependencies {
+	compile 'org.web3j:core:3.0.1'
+	compile 'org.web3j:codegen:3.0.1'
+	compile 'org.web3j:utils:3.0.1'
+    testImplementation 'junit:junit:4.12'
+    testCompile 'org.assertj:assertj-core:3.8.0'
+}
+
+task solGenerator(type: JavaExec) {
+	classpath = sourceSets.main.runtimeClasspath
+	main = 'com.easytotalizer.solidity.SolGen'
+	args 'bin/solidity'
+	args 'src/main/java'
+	args 'com.easytotalizer.contracts'
+}
+
+task solCompiler(type: JavaExec) {
+	classpath = sourceSets.main.runtimeClasspath
+	main = 'com.easytotalizer.solidity.SolCompile'
+	args 'src/main/solidity'
+	args 'bin/solidity'
+}
