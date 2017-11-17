@@ -6,6 +6,8 @@ import java.awt.Component;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.math.BigInteger;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.Box;
 import javax.swing.JLabel;
@@ -35,6 +37,9 @@ import javax.swing.JScrollPane;
 import javax.swing.JButton;
 
 public class TotalizerView extends JPanel {
+	
+	private static final Logger log = Logger.getLogger(TotalizerView.class.getName());
+	
 	private JLabel title;
 	private JLabel description;
 	private JLabel minimumBet;
@@ -366,6 +371,7 @@ public class TotalizerView extends JPanel {
 	
 	private Void showErrorDialog(Throwable error) {
 		JOptionPane.showMessageDialog(this, error.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+		log.log(Level.SEVERE, error.getMessage(), error);
 		return null;
 	}
 

@@ -6,6 +6,8 @@ import java.awt.FlowLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.math.BigInteger;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.Box;
 import javax.swing.JButton;
@@ -30,6 +32,9 @@ import org.web3j.tuples.generated.Tuple5;
 import okio.Utf8;
 
 public class CreateTotalizer extends JDialog {
+	
+	private static final Logger log = Logger.getLogger(CreateTotalizer.class.getName());
+	
 	private JTextField titleField;
 	private JTextField percentField;
 	private JTextField minBetField;
@@ -207,7 +212,7 @@ public class CreateTotalizer extends JDialog {
 					);
 			dispose();
 		}catch (Exception e) {
-			openErrorDialog(e.getMessage());
+			openErrorDialog(e);
 			e.printStackTrace();
 		}
 	}
@@ -216,8 +221,9 @@ public class CreateTotalizer extends JDialog {
 		dispose();
 	}
 	
-	private void openErrorDialog(String errorText) {
-		JOptionPane.showMessageDialog(this, errorText, "Error", JOptionPane.ERROR_MESSAGE);
+	private void openErrorDialog(Throwable error) {
+		JOptionPane.showMessageDialog(this, error.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+		log.log(Level.SEVERE, error.getMessage(), error);
 	}
 
 }

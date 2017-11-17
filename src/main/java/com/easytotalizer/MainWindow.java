@@ -11,6 +11,8 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -48,6 +50,8 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 
 public class MainWindow {
+	
+	private static final Logger log = Logger.getLogger(MainWindow.class.getName());
 	
 	private static final String frameTitle = "EasyTotalizes";
 
@@ -169,7 +173,7 @@ public class MainWindow {
 			scheduleAsyncBalanceUpdate();
 		} catch (IOException | CipherException e) {
 			e.printStackTrace();
-			this.openErrorDialog(e.getLocalizedMessage());
+			this.openErrorDialog(e);
 		}
 	}
 	
@@ -236,6 +240,7 @@ public class MainWindow {
 	
 	private Void openErrorDialog(Throwable error) {
 		JOptionPane.showMessageDialog(mainFrame, error.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+		log.log(Level.SEVERE, error.getMessage(), error);
 		return null;
 	}
 	
