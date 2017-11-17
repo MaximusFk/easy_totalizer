@@ -1,6 +1,8 @@
 package com.easytotalizer;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -8,12 +10,12 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.Arrays;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.swing.Box;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -23,6 +25,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
+import javax.swing.JTextField;
 import javax.swing.UIManager;
 
 import org.web3j.abi.datatypes.Address;
@@ -42,12 +45,6 @@ import org.web3j.utils.Convert;
 
 import com.easytotalizer.contracts.EasyTotalizer;
 import com.easytotalizer.panels.TotalizerView;
-import javax.swing.Box;
-import java.awt.Component;
-import java.awt.Dimension;
-
-import javax.swing.JTextField;
-import javax.swing.SwingConstants;
 
 public class MainWindow {
 	

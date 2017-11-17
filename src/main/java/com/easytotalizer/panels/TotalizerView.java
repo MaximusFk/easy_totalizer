@@ -10,15 +10,15 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.swing.Box;
+import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.border.LineBorder;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 
 import org.web3j.abi.datatypes.Address;
@@ -33,8 +33,6 @@ import org.web3j.tuples.generated.Tuple2;
 import org.web3j.utils.Convert;
 
 import com.easytotalizer.contracts.EasyTotalizer;
-import javax.swing.JScrollPane;
-import javax.swing.JButton;
 
 public class TotalizerView extends JPanel {
 	

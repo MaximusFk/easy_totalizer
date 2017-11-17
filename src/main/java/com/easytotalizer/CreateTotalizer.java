@@ -29,8 +29,6 @@ import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.abi.datatypes.generated.Uint8;
 import org.web3j.tuples.generated.Tuple5;
 
-import okio.Utf8;
-
 public class CreateTotalizer extends JDialog {
 	
 	private static final Logger log = Logger.getLogger(CreateTotalizer.class.getName());
