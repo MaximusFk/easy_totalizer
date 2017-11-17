@@ -29,12 +29,6 @@ import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
 
-import org.web3j.abi.datatypes.Address;
-import org.web3j.abi.datatypes.DynamicArray;
-import org.web3j.abi.datatypes.Utf8String;
-import org.web3j.abi.datatypes.generated.Bytes32;
-import org.web3j.abi.datatypes.generated.Uint256;
-import org.web3j.abi.datatypes.generated.Uint8;
 import org.web3j.crypto.CipherException;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.WalletUtils;
@@ -206,6 +200,13 @@ public class MainWindow {
 		}, 0, 5000);
 	}
 	
+	private Void cancelAsyncBalanceUpdate() {
+		if(updateTimer != null) {
+			updateTimer.cancel();
+		}
+		return null;
+	}
+	
 	private void openFileDialog() {
 		final JFileChooser fileChooser = new JFileChooser();
 		fileChooser.setFileHidingEnabled(false);
@@ -229,7 +230,12 @@ public class MainWindow {
 	
 	private void openPrivateKeyDialog() {
 		String privateKey = JOptionPane.showInputDialog(mainFrame, "Input your ethereum account private key");
-		initializeCredentials(privateKey);
+		if(!privateKey.isEmpty()) {
+			initializeCredentials(privateKey);
+		}
+		else {
+			openErrorDialog("Private key can not empty!");
+		}
 	}
 	
 	private void openErrorDialog(String errorText) {
@@ -270,7 +276,12 @@ public class MainWindow {
 	
 	private void openContractAddressDialog() {
 		String address = JOptionPane.showInputDialog(mainFrame, "Input contract address");
-		showTotalizer(address);
+		if(!address.isEmpty()) {
+			showTotalizer(address);
+		}
+		else {
+			openErrorDialog("Address can not be empty!");
+		}
 	}
 	
 	private void showTotalizer(String address) {
