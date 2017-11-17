@@ -31,7 +31,7 @@ public class SolGen {
 	
 	private static void generateWrapper(String contractName) {
 		String[] params = new String[] {
-				"--solidityTypes",
+				"--javaTypes",
 				binPath + "/" + contractName + ".bin",
 				binPath + "/" + contractName + ".abi",
 				"-o",

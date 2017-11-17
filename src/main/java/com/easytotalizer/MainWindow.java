@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
@@ -244,7 +245,7 @@ public class MainWindow {
 	private void openCreateTotalizerContract() {
 		final CreateTotalizer createTotalizer = new CreateTotalizer(this.mainFrame);
 		createTotalizer.setVisible(true);
-		Tuple5<Utf8String, Utf8String, Uint256, Uint8, DynamicArray<Bytes32>>
+		Tuple5<String, String, BigInteger, BigInteger, List<byte[]>>
 			contractConstructorData = createTotalizer.getContractData();
 		if(contractConstructorData != null) {
 			EasyTotalizer.deploy(
@@ -254,11 +255,9 @@ public class MainWindow {
 					EasyTotalizer.GAS_LIMIT,
 					contractConstructorData.getValue1(),
 					contractConstructorData.getValue2(),
-					new Uint256(
-							Convert.toWei(new BigDecimal(contractConstructorData.getValue3().getValue()), Convert.Unit.ETHER).toBigInteger()
-					),
+					Convert.toWei(new BigDecimal(contractConstructorData.getValue3()), Convert.Unit.ETHER).toBigInteger(),
 					contractConstructorData.getValue4(),
-					new Address(credentials.getAddress()),
+					credentials.getAddress(),
 					contractConstructorData.getValue5()
 				)
 			.sendAsync()

@@ -6,6 +6,8 @@ import java.awt.FlowLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -22,11 +24,6 @@ import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
 
 import org.bouncycastle.util.Arrays;
-import org.web3j.abi.datatypes.DynamicArray;
-import org.web3j.abi.datatypes.Utf8String;
-import org.web3j.abi.datatypes.generated.Bytes32;
-import org.web3j.abi.datatypes.generated.Uint256;
-import org.web3j.abi.datatypes.generated.Uint8;
 import org.web3j.tuples.generated.Tuple5;
 
 public class CreateTotalizer extends JDialog {
@@ -39,7 +36,7 @@ public class CreateTotalizer extends JDialog {
 	private JTable variantsTable;
 	private JTextField descriptionField;
 	
-	private Tuple5<Utf8String, Utf8String, Uint256, Uint8, DynamicArray<Bytes32>> contractData;
+	private Tuple5<String, String, BigInteger, BigInteger, List<byte[]>> contractData;
 
 	/**
 	 * Create the dialog.
@@ -53,7 +50,7 @@ public class CreateTotalizer extends JDialog {
 		initialize();
 	}
 	
-	public Tuple5<Utf8String, Utf8String, Uint256, Uint8, DynamicArray<Bytes32>> getContractData() {
+	public Tuple5<String, String, BigInteger, BigInteger, List<byte[]>> getContractData() {
 		return this.contractData;
 	}
 	
@@ -188,25 +185,24 @@ public class CreateTotalizer extends JDialog {
 	
 	private void save() {
 		try {
-			Utf8String title = new Utf8String(titleField.getText()); 
-			Utf8String descr = new Utf8String(descriptionField.getText());
-			Uint256 minBet = new Uint256(new BigInteger(minBetField.getText()));
-			Uint8 percent = new Uint8(new BigInteger(percentField.getText()));
+			String title = titleField.getText(); 
+			String descr = descriptionField.getText();
+			BigInteger minBet = new BigInteger(minBetField.getText());
+			BigInteger percent = new BigInteger(percentField.getText());
 			DefaultTableModel model = (DefaultTableModel) variantsTable.getModel();
 			final int rowCount = model.getRowCount();
-			Bytes32[] variants = new Bytes32[rowCount];
+			List<byte[]> variants = new ArrayList<>();
 			for(int row = 0; row < rowCount; ++row) {
 				String name = (String) model.getValueAt(row, 0);
-				Bytes32 bytesName = new Bytes32(Arrays.copyOf(name.getBytes(), 32));
-				variants[row] = bytesName;
+				byte[] bytesName = Arrays.copyOf(name.getBytes(), 32);
+				variants.add(bytesName);
 			}
-			DynamicArray<Bytes32> variantsArray = new DynamicArray<>(variants);
 			this.contractData = new Tuple5<>(
 						title,
 						descr,
 						minBet,
 						percent,
-						variantsArray
+						variants
 					);
 			dispose();
 		}catch (Exception e) {

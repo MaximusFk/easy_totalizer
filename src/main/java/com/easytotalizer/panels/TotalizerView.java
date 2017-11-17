@@ -21,12 +21,6 @@ import javax.swing.SwingConstants;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 
-import org.web3j.abi.datatypes.Address;
-import org.web3j.abi.datatypes.Bool;
-import org.web3j.abi.datatypes.Utf8String;
-import org.web3j.abi.datatypes.generated.Bytes32;
-import org.web3j.abi.datatypes.generated.Uint256;
-import org.web3j.abi.datatypes.generated.Uint8;
 import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
 import org.web3j.tuples.generated.Tuple2;
@@ -57,6 +51,10 @@ public class TotalizerView extends JPanel {
 	private EasyTotalizer easyTotalizerContract;
 	
 	private BigInteger minimumBetWei;
+	
+	private static final String COLUMN_INDEX = "#";
+	private static final String COLUMN_NAME = "Name";
+	private static final String COLUMN_BETS = "Bets";
 
 	/**
 	 * Create the panel.
@@ -202,9 +200,9 @@ public class TotalizerView extends JPanel {
 		variantTable.setAlignmentX(Component.LEFT_ALIGNMENT);
 		variantTable.setModel(new DefaultTableModel(
 			new String[] {
-				"#",
-				"Name",
-				"Bets"
+				COLUMN_INDEX,
+				COLUMN_NAME,
+				COLUMN_BETS
 			},
 			0
 		) {
@@ -255,11 +253,11 @@ public class TotalizerView extends JPanel {
 		this.setAddress(contractAddress);
 	}
 	
-	private void loadVariants(Uint256 count) {
-		long countVariants = count.getValue().longValue();
+	private void loadVariants(BigInteger count) {
+		long countVariants = count.longValue();
 		for(long i = 0; i < countVariants; ++i) {
 			try {
-				Tuple2<Bytes32, Uint8> variant = this.easyTotalizerContract.variants(new Uint256(i)).send();
+				Tuple2<byte[], BigInteger> variant = this.easyTotalizerContract.variants(BigInteger.valueOf(i)).send();
 				addVariant(variant, i);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -271,11 +269,11 @@ public class TotalizerView extends JPanel {
 		this.easyTotalizerContract.getVariantsCount().sendAsync().thenAccept(this::updateVariants).exceptionally(this::showErrorDialog);
 	}
 	
-	private void updateVariants(Uint256 count) {
-		long countVariants = count.getValue().longValue();
+	private void updateVariants(BigInteger count) {
+		long countVariants = count.longValue();
 		for(int i = 0; i < countVariants; ++i) {
 			try {
-				Tuple2<Bytes32, Uint8> variant = this.easyTotalizerContract.variants(new Uint256(i)).send();
+				Tuple2<byte[], BigInteger> variant = this.easyTotalizerContract.variants(BigInteger.valueOf(i)).send();
 				setVariantValue(variant.getValue2(), i);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -283,57 +281,57 @@ public class TotalizerView extends JPanel {
 		}
 	}
 	
-	private void addVariant(Tuple2<Bytes32, Uint8> variant, long variantIndex) {
-		String name = new String(variant.getValue1().getValue());
-		String bets = variant.getValue2().getValue().toString();
+	private void addVariant(Tuple2<byte[], BigInteger> variant, long variantIndex) {
+		String name = new String(variant.getValue1());
+		String bets = variant.getValue2().toString();
 		DefaultTableModel model = (DefaultTableModel) this.variantTable.getModel();
 		model.addRow(new Object[] { variantIndex, name, bets });
 	}
 	
-	private void setVariantValue(Uint8 bets, int row) {
+	private void setVariantValue(BigInteger bets, int row) {
 		DefaultTableModel model = (DefaultTableModel) this.variantTable.getModel();
-		model.setValueAt(bets.getValue().toString(), row, model.findColumn("Bets"));
+		model.setValueAt(bets.toString(), row, model.findColumn(COLUMN_BETS));
 	}
 	
-	private void setTitle(Utf8String title) {
-		this.title.setText(title.getValue());
+	private void setTitle(String title) {
+		this.title.setText(title);
 	}
 	
-	private void setDescription(Utf8String desc) {
-		this.description.setText(desc.getValue());
+	private void setDescription(String desc) {
+		this.description.setText(desc);
 	}
 	
-	private void setMinimumBet(Uint256 betWei) {
-		this.minimumBetWei = betWei.getValue();
-		this.minimumBet.setText(Convert.fromWei(betWei.getValue().toString(), Convert.Unit.ETHER).toPlainString() + " eth");
+	private void setMinimumBet(BigInteger betWei) {
+		this.minimumBetWei = betWei;
+		this.minimumBet.setText(Convert.fromWei(betWei.toString(), Convert.Unit.ETHER).toPlainString() + " eth");
 	}
 	
-	private void setPercent(Uint8 percent) {
-		this.percent.setText(percent.getValue().toString() + " %");
+	private void setPercent(BigInteger percent) {
+		this.percent.setText(percent.toString() + " %");
 	}
 	
-	private void setBank(Uint256 bank) {
-		this.bankField.setText(Convert.fromWei(bank.getValue().toString(), Convert.Unit.ETHER).toPlainString() + " eth");
+	private void setBank(BigInteger bank) {
+		this.bankField.setText(Convert.fromWei(bank.toString(), Convert.Unit.ETHER).toPlainString() + " eth");
 	}
 	
-	private void setClosed(Bool isClosed) {
-		this.isClosedField.setText(isClosed.getValue() ? "Yes" : "No");
-		btnTakeReward.setEnabled(isClosed.getValue());
+	private void setClosed(Boolean isClosed) {
+		this.isClosedField.setText(isClosed ? "Yes" : "No");
+		btnTakeReward.setEnabled(isClosed);
 	}
 	
-	private void setPayAmount(Uint256 payAmount) {
-		this.payAmountField.setText(Convert.fromWei(payAmount.getValue().toString(), Convert.Unit.ETHER).toPlainString() + " eth");
+	private void setPayAmount(BigInteger payAmount) {
+		this.payAmountField.setText(Convert.fromWei(payAmount.toString(), Convert.Unit.ETHER).toPlainString() + " eth");
 	}
 	
-	private void setOrganizerAddress(Address organizerAddress) {
-		btnClose.setVisible(organizerAddress.getValue().equals(credentials.getAddress()));
+	private void setOrganizerAddress(String organizerAddress) {
+		btnClose.setVisible(organizerAddress.equals(credentials.getAddress()));
 	}
 	
 	private void setAddress(String address) {
 		this.addressField.setText(address);
 	}
 	
-	private void bet(Uint256 variantIndex) {
+	private void bet(BigInteger variantIndex) {
 		if(this.minimumBetWei != null && !this.minimumBetWei.equals(BigInteger.ZERO)) {
 			this.easyTotalizerContract.bet(variantIndex, this.minimumBetWei).sendAsync().thenAccept(transaction -> {
 				updateVariants();
@@ -341,7 +339,7 @@ public class TotalizerView extends JPanel {
 		}
 	}
 	
-	private void close(Uint256 variantIndex) {
+	private void close(BigInteger variantIndex) {
 		this.easyTotalizerContract.close(variantIndex).sendAsync().thenAccept(transaction -> {
 			updateContractInfo();
 		}).exceptionally(this::showErrorDialog);
@@ -356,15 +354,15 @@ public class TotalizerView extends JPanel {
 	private void closeBySelectedTableRow() {
 		int selectedRow = variantTable.getSelectedRow();
 		DefaultTableModel model = (DefaultTableModel) variantTable.getModel();
-		Long variantIndex = (Long) model.getValueAt(selectedRow, model.findColumn("#"));
-		close(new Uint256(variantIndex));
+		Long variantIndex = (Long) model.getValueAt(selectedRow, model.findColumn(COLUMN_INDEX));
+		close(BigInteger.valueOf(variantIndex));
 	}
 	
 	private void betBySelectedTableRow() {
 		int selectedRow = variantTable.getSelectedRow();
 		DefaultTableModel model = (DefaultTableModel) variantTable.getModel();
-		Long variantIndex = (Long) model.getValueAt(selectedRow, model.findColumn("#"));
-		bet(new Uint256(variantIndex));
+		Long variantIndex = (Long) model.getValueAt(selectedRow, model.findColumn(COLUMN_INDEX));
+		bet(BigInteger.valueOf(variantIndex));
 	}
 	
 	private Void showErrorDialog(Throwable error) {

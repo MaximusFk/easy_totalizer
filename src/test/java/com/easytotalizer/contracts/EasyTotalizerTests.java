@@ -5,18 +5,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.web3j.abi.datatypes.Address;
-import org.web3j.abi.datatypes.DynamicArray;
-import org.web3j.abi.datatypes.Utf8String;
-import org.web3j.abi.datatypes.generated.Bytes32;
-import org.web3j.abi.datatypes.generated.Uint256;
-import org.web3j.abi.datatypes.generated.Uint8;
 import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
@@ -69,24 +65,24 @@ public class EasyTotalizerTests {
 		web3j = Web3j.build(new HttpService());
 		credentials = Credentials.create(DEFAULT_PRIVATE_KEY);
 		
+		List<byte[]> variants = new ArrayList<>();
+		variants.add(Arrays.copyOf(DEFAULT_VARIANT_1.getBytes(), 32));
+		variants.add(Arrays.copyOf(DEFAULT_VARIANT_2.getBytes(), 32));
+		variants.add(Arrays.copyOf(DEFAULT_VARIANT_3.getBytes(), 32));
 		defaultEasyTotalizer = EasyTotalizer.deploy(
 				web3j,
 				credentials,
 				EasyTotalizer.GAS_PRICE,
 				EasyTotalizer.GAS_LIMIT,
-				new Utf8String(DEFAULT_TITLE),
-				new Utf8String(DEFAULT_DESCRIPTION),
-				new Uint256(Convert.toWei(new BigDecimal(DEFAULT_MIN_BET_ETHER), Convert.Unit.ETHER).toBigInteger()),
-				new Uint8(DEFAULT_PERCENT),
-				new Address(credentials.getAddress()),
-				new DynamicArray<>(
-						new Bytes32(Arrays.copyOf(DEFAULT_VARIANT_1.getBytes(), 32)),
-						new Bytes32(Arrays.copyOf(DEFAULT_VARIANT_2.getBytes(), 32)),
-						new Bytes32(Arrays.copyOf(DEFAULT_VARIANT_3.getBytes(), 32))
-					)
+				DEFAULT_TITLE,
+				DEFAULT_DESCRIPTION,
+				Convert.toWei(new BigDecimal(DEFAULT_MIN_BET_ETHER), Convert.Unit.ETHER).toBigInteger(),
+				BigInteger.valueOf(DEFAULT_PERCENT),
+				credentials.getAddress(),
+				variants
 			).send();
 		defaultEasyTotalizer.bet(
-				new Uint256(DEFAULT_VARIANT_1_INDEX),
+				BigInteger.valueOf(DEFAULT_VARIANT_1_INDEX),
 				Convert.toWei(new BigDecimal(DEFAULT_MIN_BET_ETHER), Convert.Unit.ETHER).toBigInteger()
 			).send();
 		DEFAULT_VARIANT_1_BETS = 1;
@@ -102,39 +98,39 @@ public class EasyTotalizerTests {
 				EasyTotalizer.GAS_PRICE,
 				EasyTotalizer.GAS_LIMIT
 			);
-		easyTotalizer.bet(new Uint256(DEFAULT_VARIANT_1_INDEX), Convert.toWei(new BigDecimal(DEFAULT_MIN_BET_ETHER), Convert.Unit.ETHER).toBigInteger()).send();
-		this.defaultEasyTotalizer.close(new Uint256(DEFAULT_VARIANT_1_INDEX)).send();
-		assertThat(this.defaultEasyTotalizer.isClosed().send().getValue()).isEqualTo(true);
+		easyTotalizer.bet(BigInteger.valueOf(DEFAULT_VARIANT_1_INDEX), Convert.toWei(new BigDecimal(DEFAULT_MIN_BET_ETHER), Convert.Unit.ETHER).toBigInteger()).send();
+		this.defaultEasyTotalizer.close(BigInteger.valueOf(DEFAULT_VARIANT_1_INDEX)).send();
+		assertThat(this.defaultEasyTotalizer.isClosed().send()).isEqualTo(true);
 	}
 
 	@Test
 	public void testTitle() throws Exception {
-		assertThat(this.defaultEasyTotalizer.title().send().getValue()).isEqualTo(DEFAULT_TITLE);
+		assertThat(this.defaultEasyTotalizer.title().send()).isEqualTo(DEFAULT_TITLE);
 	}
 
 	@Test
 	public void testVariants() throws Exception {
-		Tuple2<Bytes32, Uint8> variant_1 = this.defaultEasyTotalizer.variants(new Uint256(DEFAULT_VARIANT_1_INDEX)).send();
-		assertThat((new String(variant_1.getValue1().getValue()))).isEqualToIgnoringWhitespace(DEFAULT_VARIANT_1);
-		assertThat(variant_1.getValue2().getValue()).isEqualTo(BigInteger.valueOf(DEFAULT_VARIANT_1_BETS));
+		Tuple2<byte[], BigInteger> variant_1 = this.defaultEasyTotalizer.variants(BigInteger.valueOf(DEFAULT_VARIANT_1_INDEX)).send();
+		assertThat((new String(variant_1.getValue1()))).isEqualToIgnoringWhitespace(DEFAULT_VARIANT_1);
+		assertThat(variant_1.getValue2()).isEqualTo(BigInteger.valueOf(DEFAULT_VARIANT_1_BETS));
 		
-		Tuple2<Bytes32, Uint8> variant_2 = this.defaultEasyTotalizer.variants(new Uint256(DEFAULT_VARIANT_2_INDEX)).send();
-		assertThat(new String(variant_2.getValue1().getValue())).isEqualToIgnoringWhitespace(DEFAULT_VARIANT_2);
-		assertThat(variant_2.getValue2().getValue()).isEqualTo(BigInteger.valueOf(DEFAULT_VARIANT_2_BETS));
+		Tuple2<byte[], BigInteger> variant_2 = this.defaultEasyTotalizer.variants(BigInteger.valueOf(DEFAULT_VARIANT_2_INDEX)).send();
+		assertThat(new String(variant_2.getValue1())).isEqualToIgnoringWhitespace(DEFAULT_VARIANT_2);
+		assertThat(variant_2.getValue2()).isEqualTo(BigInteger.valueOf(DEFAULT_VARIANT_2_BETS));
 		
-		Tuple2<Bytes32, Uint8> variant_3 = this.defaultEasyTotalizer.variants(new Uint256(DEFAULT_VARIANT_3_INDEX)).send();
-		assertThat(new String(variant_3.getValue1().getValue())).isEqualToIgnoringWhitespace(DEFAULT_VARIANT_3);
-		assertThat(variant_3.getValue2().getValue()).isEqualTo(BigInteger.valueOf(DEFAULT_VARIANT_3_BETS));
+		Tuple2<byte[], BigInteger> variant_3 = this.defaultEasyTotalizer.variants(BigInteger.valueOf(DEFAULT_VARIANT_3_INDEX)).send();
+		assertThat(new String(variant_3.getValue1())).isEqualToIgnoringWhitespace(DEFAULT_VARIANT_3);
+		assertThat(variant_3.getValue2()).isEqualTo(BigInteger.valueOf(DEFAULT_VARIANT_3_BETS));
 	}
 
 	@Test
 	public void testOrganizer() throws Exception {
-		assertThat(this.defaultEasyTotalizer.organizer().send().getValue()).isEqualTo(credentials.getAddress());
+		assertThat(this.defaultEasyTotalizer.organizer().send()).isEqualTo(credentials.getAddress());
 	}
 
 	@Test
 	public void testPercent() throws Exception {
-		assertThat(this.defaultEasyTotalizer.percent().send().getValue().intValue()).isEqualTo(DEFAULT_PERCENT);
+		assertThat(this.defaultEasyTotalizer.percent().send().intValue()).isEqualTo(DEFAULT_PERCENT);
 	}
 
 	@Test
@@ -147,10 +143,10 @@ public class EasyTotalizerTests {
 				EasyTotalizer.GAS_PRICE,
 				EasyTotalizer.GAS_LIMIT
 			);
-		easyTotalizer.bet(new Uint256(DEFAULT_VARIANT_1_INDEX), Convert.toWei(new BigDecimal(DEFAULT_MIN_BET_ETHER), Convert.Unit.ETHER).toBigInteger()).send();
+		easyTotalizer.bet(BigInteger.valueOf(DEFAULT_VARIANT_1_INDEX), Convert.toWei(new BigDecimal(DEFAULT_MIN_BET_ETHER), Convert.Unit.ETHER).toBigInteger()).send();
 		BigInteger beforeBalance = web3j.ethGetBalance(credentials.getAddress(), DefaultBlockParameterName.LATEST).send().getBalance();
-		this.defaultEasyTotalizer.close(new Uint256(DEFAULT_VARIANT_1_INDEX)).send();
-		assertThat(this.defaultEasyTotalizer.isClosed().send().getValue()).isEqualTo(true);
+		this.defaultEasyTotalizer.close(BigInteger.valueOf(DEFAULT_VARIANT_1_INDEX)).send();
+		assertThat(this.defaultEasyTotalizer.isClosed().send()).isEqualTo(true);
 		easyTotalizer.takeReward().send();
 		BigInteger afterBalance = web3j.ethGetBalance(credentials.getAddress(), DefaultBlockParameterName.LATEST).send().getBalance();
 		assertThat(afterBalance).isGreaterThan(beforeBalance);
@@ -158,7 +154,7 @@ public class EasyTotalizerTests {
 
 	@Test
 	public void testDescription() throws Exception {
-		assertThat(this.defaultEasyTotalizer.description().send().getValue()).isEqualTo(DEFAULT_DESCRIPTION);
+		assertThat(this.defaultEasyTotalizer.description().send()).isEqualTo(DEFAULT_DESCRIPTION);
 	}
 
 	@Test
@@ -171,13 +167,13 @@ public class EasyTotalizerTests {
 				EasyTotalizer.GAS_PRICE,
 				EasyTotalizer.GAS_LIMIT
 			);
-		easyTotalizer.bet(new Uint256(DEFAULT_VARIANT_1_INDEX), Convert.toWei(new BigDecimal(DEFAULT_MIN_BET_ETHER), Convert.Unit.ETHER).toBigInteger()).send();
+		easyTotalizer.bet(BigInteger.valueOf(DEFAULT_VARIANT_1_INDEX), Convert.toWei(new BigDecimal(DEFAULT_MIN_BET_ETHER), Convert.Unit.ETHER).toBigInteger()).send();
 		
 	}
 
 	@Test
 	public void testBank() throws Exception {
-		BigInteger currentBank = this.defaultEasyTotalizer.bank().send().getValue();
+		BigInteger currentBank = this.defaultEasyTotalizer.bank().send();
 		assertThat(currentBank).isEqualTo(Convert.toWei(new BigDecimal(DEFAULT_MIN_BET_ETHER), Convert.Unit.ETHER).toBigInteger());
 	}
 
@@ -191,56 +187,56 @@ public class EasyTotalizerTests {
 				EasyTotalizer.GAS_PRICE,
 				EasyTotalizer.GAS_LIMIT
 			);
-		easyTotalizer.bet(new Uint256(DEFAULT_VARIANT_1_INDEX), Convert.toWei(new BigDecimal(DEFAULT_MIN_BET_ETHER), Convert.Unit.ETHER).toBigInteger()).send();
-		this.defaultEasyTotalizer.close(new Uint256(DEFAULT_VARIANT_1_INDEX)).send();
-		assertThat(this.defaultEasyTotalizer.isClosed().send().getValue()).isEqualTo(true);
+		easyTotalizer.bet(BigInteger.valueOf(DEFAULT_VARIANT_1_INDEX), Convert.toWei(new BigDecimal(DEFAULT_MIN_BET_ETHER), Convert.Unit.ETHER).toBigInteger()).send();
+		this.defaultEasyTotalizer.close(BigInteger.valueOf(DEFAULT_VARIANT_1_INDEX)).send();
+		assertThat(this.defaultEasyTotalizer.isClosed().send()).isEqualTo(true);
 	}
 
 	@Test
 	public void testMinimumBet() throws Exception {
-		assertThat(this.defaultEasyTotalizer.minimumBet().send().getValue())
+		assertThat(this.defaultEasyTotalizer.minimumBet().send())
 		.isEqualTo(Convert.toWei(new BigDecimal(DEFAULT_MIN_BET_ETHER), Convert.Unit.ETHER).toBigInteger());
 	}
 
 	@Test
 	public void testPayAmount() throws Exception {
-		this.defaultEasyTotalizer.close(new Uint256(DEFAULT_VARIANT_1_INDEX)).send();
-		BigInteger bank = this.defaultEasyTotalizer.bank().send().getValue();
+		this.defaultEasyTotalizer.close(BigInteger.valueOf(DEFAULT_VARIANT_1_INDEX)).send();
+		BigInteger bank = this.defaultEasyTotalizer.bank().send();
 		BigInteger orginizerPaiment = bank.divide(BigInteger.valueOf(100L)).multiply(BigInteger.valueOf(DEFAULT_PERCENT));
 		BigInteger payAmount = bank.subtract(orginizerPaiment).divide(BigInteger.valueOf(DEFAULT_VARIANT_1_BETS));
-		assertThat(this.defaultEasyTotalizer.payAmount().send().getValue()).isEqualTo(payAmount);
+		assertThat(this.defaultEasyTotalizer.payAmount().send()).isEqualTo(payAmount);
 	}
 
 	@Test
 	public void testWinner() throws Exception {
-		this.defaultEasyTotalizer.close(new Uint256(DEFAULT_VARIANT_1_INDEX)).send();
-		Tuple2<Bytes32, Uint8> winner = this.defaultEasyTotalizer.winner().send();
-		assertThat(new String(winner.getValue1().getValue())).isEqualToIgnoringWhitespace(DEFAULT_VARIANT_1);
-		assertThat(winner.getValue2().getValue()).isEqualTo(BigInteger.valueOf(DEFAULT_VARIANT_1_BETS));
+		this.defaultEasyTotalizer.close(BigInteger.valueOf(DEFAULT_VARIANT_1_INDEX)).send();
+		Tuple2<byte[], BigInteger> winner = this.defaultEasyTotalizer.winner().send();
+		assertThat(new String(winner.getValue1())).isEqualToIgnoringWhitespace(DEFAULT_VARIANT_1);
+		assertThat(winner.getValue2()).isEqualTo(BigInteger.valueOf(DEFAULT_VARIANT_1_BETS));
 	}
 	
 	@Test
 	public void testGetVariantsCount() throws Exception {
-		assertThat(this.defaultEasyTotalizer.getVariantsCount().send().getValue()).isEqualTo(DEFAULT_VARIANT_COUNT);
+		assertThat(this.defaultEasyTotalizer.getVariantsCount().send()).isEqualTo(DEFAULT_VARIANT_COUNT);
 	}
 
 	@Test
 	public void testDeploy() throws Exception {
+		List<byte[]> variants = new ArrayList<>();
+		variants.add(Arrays.copyOf("alfa".getBytes(), 32));
+		variants.add(Arrays.copyOf("gamma".getBytes(), 32));
+		variants.add(Arrays.copyOf("omega".getBytes(), 32));
 		EasyTotalizer easyTotalizer = EasyTotalizer.deploy(
 				web3j,
 				credentials,
 				EasyTotalizer.GAS_PRICE,
 				EasyTotalizer.GAS_LIMIT,
-				new Utf8String("Test title"),
-				new Utf8String("Test description"),
-				new Uint256(Convert.toWei(new BigDecimal(5), Convert.Unit.ETHER).toBigInteger()),
-				new Uint8(10),
-				new Address(credentials.getAddress()),
-				new DynamicArray<>(
-						new Bytes32(Arrays.copyOf("alfa".getBytes(), 32)),
-						new Bytes32(Arrays.copyOf("gamma".getBytes(), 32)),
-						new Bytes32(Arrays.copyOf("omega".getBytes(), 32))
-					)
+				"Test title",
+				"Test description",
+				Convert.toWei(new BigDecimal(5), Convert.Unit.ETHER).toBigInteger(),
+				BigInteger.valueOf(10),
+				credentials.getAddress(),
+				variants
 			).send();
 		assertThat(easyTotalizer.isValid()).isEqualTo(true);
 	}
