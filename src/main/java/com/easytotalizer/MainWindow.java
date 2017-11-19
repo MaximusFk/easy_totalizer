@@ -182,7 +182,11 @@ public class MainWindow {
 			BigInteger balance = currentBalance.getBalance();
 			balanceField.setText(Convert.fromWei(new BigDecimal(balance), Convert.Unit.ETHER).toString());
 		})
-		.exceptionally(this::openErrorDialog);
+		.exceptionally((exception) -> {
+			cancelAsyncBalanceUpdate();
+			openErrorDialog(exception);
+			return null;
+		});
 	}
 	
 	private void scheduleAsyncBalanceUpdate() {
