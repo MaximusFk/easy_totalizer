@@ -16,6 +16,8 @@ dependencies {
 }
 
 task solGenerator(type: JavaExec) {
+	description = 'Generate Java Wrapper for Solidity ABI'
+
 	classpath = sourceSets.main.runtimeClasspath
 	main = 'com.easytotalizer.solidity.SolGen'
 	args 'bin/solidity'
@@ -24,6 +26,8 @@ task solGenerator(type: JavaExec) {
 }
 
 task solCompiler(type: JavaExec) {
+	description = 'Compile Solidity source code into binary and abi files'
+
 	classpath = sourceSets.main.runtimeClasspath
 	main = 'com.easytotalizer.solidity.SolCompile'
 	args 'src/main/solidity'
