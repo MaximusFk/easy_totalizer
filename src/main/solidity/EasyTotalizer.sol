@@ -26,6 +26,9 @@ contract EasyTotalizer {
     bool public isClosed;
     uint public payAmount;
     
+    event Closed();
+    event BetMade(uint _variant);
+    
     modifier variantExist(uint _variant) {
         require(_variant < variants.length);
         _;
@@ -60,7 +63,7 @@ contract EasyTotalizer {
         minimumBet = _minBet;
         percent = _percent;
         organizer = _organizer;
-        for(uint i = 0; i < _variants.length; i++) {
+        for (uint i = 0; i < _variants.length; i++) {
             variants.push(Variant({name: _variants[i], betsCount: 0}));
         }
     }
@@ -71,9 +74,9 @@ contract EasyTotalizer {
      * @param _variant Variant identifier
      */ 
     function bet(uint _variant)
-        variantExist(_variant)
         external
         payable
+        variantExist(_variant)
     {
         require(!isClosed);
         require(msg.value >= minimumBet);
@@ -82,6 +85,7 @@ contract EasyTotalizer {
         bets[msg.sender] = Bet({betted: true, variant: _variant, paid: false});
         bank += msg.value;
         variants[_variant].betsCount++;
+        BetMade(_variant);
     }
     
     /**
@@ -93,9 +97,9 @@ contract EasyTotalizer {
         require(isClosed);
         require(!bets[msg.sender].paid);
         
-        if(payAmount > 0) {
+        if (payAmount > 0) {
             bets[msg.sender].paid = true;
-            if(!msg.sender.send(payAmount)) {
+            if (!msg.sender.send(payAmount)) {
                 bets[msg.sender].paid = false;
                 return 0;
             }
@@ -108,13 +112,14 @@ contract EasyTotalizer {
      * 
      * @param _winner Sets winner identifier
      */
-    function close(uint _winner) onlyOrganizer variantExist(_winner) external {
+    function close(uint _winner) external onlyOrganizer variantExist(_winner) {
         require(!isClosed);
         isClosed = true;
         winner = variants[_winner];
         uint organizerPaiment = calculatePayment();
         payAmount = (bank - organizerPaiment) / winner.betsCount;
         organizer.transfer(organizerPaiment);
+        Closed();
     }
     
     function getVariantsCount() external constant returns(uint) {
@@ -124,4 +129,10 @@ contract EasyTotalizer {
     function calculatePayment() internal constant returns(uint) {
     	return bank / 100 * percent;
     }
+    
+    function kill() public onlyOrganizer {
+        selfdestruct(msg.sender);
+    }
+    
+    function () public payable {}
 }
