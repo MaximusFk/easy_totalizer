@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -23,10 +24,12 @@ import javax.swing.table.DefaultTableModel;
 
 import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
+import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.tuples.generated.Tuple2;
 import org.web3j.utils.Convert;
 
 import com.easytotalizer.contracts.EasyTotalizer;
+import com.easytotalizer.contracts.EasyTotalizer.BetMadeEventResponse;
 
 public class TotalizerView extends JPanel {
 	
@@ -209,7 +212,7 @@ public class TotalizerView extends JPanel {
 			Class[] columnTypes = new Class[] {
 				Long.class,
 				String.class,
-				String.class
+				Long.class
 			};
 			public Class getColumnClass(int columnIndex) {
 				return columnTypes[columnIndex];
@@ -228,7 +231,13 @@ public class TotalizerView extends JPanel {
 				EasyTotalizer.GAS_PRICE,
 				EasyTotalizer.GAS_LIMIT
 			);
-		loadContractInfo();
+		try {
+			this.easyTotalizerContract.isValid();
+			loadContractInfo();
+			
+		} catch (IOException e1) {
+			showErrorDialog(e1);
+		}
 	}
 	
 	private void loadContractInfo() {
@@ -242,6 +251,7 @@ public class TotalizerView extends JPanel {
 		this.easyTotalizerContract.getVariantsCount().sendAsync().thenAccept(this::loadVariants).exceptionally(this::showErrorDialog);
 		this.easyTotalizerContract.organizer().sendAsync().thenAccept(this::setOrganizerAddress).exceptionally(this::showErrorDialog);
 		this.setAddress(contractAddress);
+		this.registerEventListeners();
 	}
 	
 	private void updateContractInfo() {
@@ -281,16 +291,57 @@ public class TotalizerView extends JPanel {
 		}
 	}
 	
+	private void registerEventListeners() {
+		this.easyTotalizerContract.closedEventObservable(DefaultBlockParameterName.EARLIEST, DefaultBlockParameterName.LATEST)
+			.subscribe(responce -> {
+				log.log(Level.INFO, responce.toString());
+				updateContractInfo();
+			});
+	}
+	
 	private void addVariant(Tuple2<byte[], BigInteger> variant, long variantIndex) {
 		String name = new String(variant.getValue1());
-		String bets = variant.getValue2().toString();
+		Long bets = variant.getValue2().longValue();
 		DefaultTableModel model = (DefaultTableModel) this.variantTable.getModel();
 		model.addRow(new Object[] { variantIndex, name, bets });
 	}
 	
 	private void setVariantValue(BigInteger bets, int row) {
 		DefaultTableModel model = (DefaultTableModel) this.variantTable.getModel();
-		model.setValueAt(bets.toString(), row, model.findColumn(COLUMN_BETS));
+		model.setValueAt(bets.longValue(), row, model.findColumn(COLUMN_BETS));
+	}
+	
+	private void setVariantValue(Long bets, int row) {
+		DefaultTableModel model = (DefaultTableModel) this.variantTable.getModel();
+		model.setValueAt(bets, row, model.findColumn(COLUMN_BETS));
+	}
+	
+	private void setVariantValueByIndex(Long bets, Long index) {
+		DefaultTableModel model = (DefaultTableModel) this.variantTable.getModel();
+		final int indexColumn = model.findColumn(COLUMN_INDEX);
+		final int valueColumn = model.findColumn(COLUMN_BETS);
+		for(int row = 0; row < model.getRowCount(); ++row) {
+			if(model.getValueAt(row, indexColumn).equals(index)) {
+				model.setValueAt(bets, row, valueColumn);
+			}
+		}
+	}
+	
+	private Long getVariantValueByIndex(Long index) {
+		DefaultTableModel model = (DefaultTableModel) this.variantTable.getModel();
+		final int indexColumn = model.findColumn(COLUMN_INDEX);
+		final int valueColumn = model.findColumn(COLUMN_BETS);
+		for(int row = 0; row < model.getRowCount(); ++row) {
+			if(model.getValueAt(row, indexColumn).equals(index)) {
+				return (Long) model.getValueAt(row, valueColumn);
+			}
+		}
+		return 0L;
+	}
+	
+	private Long getVariantValue(int row) {
+		DefaultTableModel model = (DefaultTableModel) this.variantTable.getModel();
+		return (Long) model.getValueAt(row, model.findColumn(COLUMN_BETS));
 	}
 	
 	private void setTitle(String title) {
@@ -334,7 +385,11 @@ public class TotalizerView extends JPanel {
 	private void bet(BigInteger variantIndex) {
 		if(this.minimumBetWei != null && !this.minimumBetWei.equals(BigInteger.ZERO)) {
 			this.easyTotalizerContract.bet(variantIndex, this.minimumBetWei).sendAsync().thenAccept(transaction -> {
-				updateVariants();
+				for(BetMadeEventResponse response : easyTotalizerContract.getBetMadeEvents(transaction)) {
+					Long oldValue = getVariantValueByIndex(response._variant.longValue());
+					setVariantValueByIndex(++oldValue, response._variant.longValue());
+					log.log(Level.INFO, response.toString());
+				}
 			}).exceptionally(this::showErrorDialog);
 		}
 	}
@@ -370,5 +425,4 @@ public class TotalizerView extends JPanel {
 		log.log(Level.SEVERE, error.getMessage(), error);
 		return null;
 	}
-
 }

@@ -16,6 +16,7 @@ import org.junit.Test;
 import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.tuples.generated.Tuple2;
 import org.web3j.utils.Convert;
@@ -73,12 +74,13 @@ public class EasyTotalizerTests {
 				web3j,
 				credentials,
 				EasyTotalizer.GAS_PRICE,
-				EasyTotalizer.GAS_LIMIT,
+				EasyTotalizer.GAS_LIMIT
+			).send();
+		defaultEasyTotalizer.init(
 				DEFAULT_TITLE,
 				DEFAULT_DESCRIPTION,
 				Convert.toWei(new BigDecimal(DEFAULT_MIN_BET_ETHER), Convert.Unit.ETHER).toBigInteger(),
 				BigInteger.valueOf(DEFAULT_PERCENT),
-				credentials.getAddress(),
 				variants
 			).send();
 		defaultEasyTotalizer.bet(
@@ -230,12 +232,13 @@ public class EasyTotalizerTests {
 				web3j,
 				credentials,
 				EasyTotalizer.GAS_PRICE,
-				EasyTotalizer.GAS_LIMIT,
+				EasyTotalizer.GAS_LIMIT
+			).send();
+		easyTotalizer.init(
 				"Test title",
 				"Test description",
 				Convert.toWei(new BigDecimal(5), Convert.Unit.ETHER).toBigInteger(),
 				BigInteger.valueOf(10),
-				credentials.getAddress(),
 				variants
 			).send();
 		assertThat(easyTotalizer.isValid()).isEqualTo(true);
@@ -252,5 +255,33 @@ public class EasyTotalizerTests {
 			);
 		assertThat(easyTotalizer.isValid()).isEqualTo(true);
 	}
-
+	
+	@Test
+	public void testKill() throws Exception {
+		defaultEasyTotalizer.kill().send();
+		assertThat(defaultEasyTotalizer.isValid()).isFalse();
+	}
+	
+	@Test
+	public void testGetClosedEvents() throws Exception {
+		TransactionReceipt transactionReceipt = defaultEasyTotalizer.close(BigInteger.valueOf(DEFAULT_VARIANT_1_INDEX)).send();
+		assertThat(defaultEasyTotalizer.getClosedEvents(transactionReceipt)).isNotEmpty();
+	}
+	
+	@Test
+	public void testGetBetMadeEvents() throws Exception {
+		Credentials credentials = Credentials.create(SECONDARY_PRIVATE_KEY);
+		EasyTotalizer easyTotalizer = EasyTotalizer.load(
+				defaultEasyTotalizer.getContractAddress(),
+				web3j,
+				credentials,
+				EasyTotalizer.GAS_PRICE,
+				EasyTotalizer.GAS_LIMIT
+			);
+		TransactionReceipt transactionReceipt = easyTotalizer.bet(
+				BigInteger.valueOf(DEFAULT_VARIANT_1_INDEX),
+				Convert.toWei(new BigDecimal(DEFAULT_MIN_BET_ETHER), Convert.Unit.ETHER).toBigInteger()
+			).send();
+		assertThat(easyTotalizer.getBetMadeEvents(transactionReceipt)).isNotEmpty();
+	}
 }

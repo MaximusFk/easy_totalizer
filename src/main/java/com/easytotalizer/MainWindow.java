@@ -194,7 +194,7 @@ public class MainWindow {
 			updateTimer = new Timer(true);
 		}
 		else {
-			updateTimer.cancel();
+			cancelAsyncBalanceUpdate();
 		}
 		updateTimer.schedule(new TimerTask() {
 			@Override
@@ -207,6 +207,7 @@ public class MainWindow {
 	private Void cancelAsyncBalanceUpdate() {
 		if(updateTimer != null) {
 			updateTimer.cancel();
+			updateTimer = null;
 		}
 		return null;
 	}
@@ -262,17 +263,23 @@ public class MainWindow {
 					web3j,
 					credentials,
 					EasyTotalizer.GAS_PRICE,
-					EasyTotalizer.GAS_LIMIT,
-					contractConstructorData.getValue1(),
-					contractConstructorData.getValue2(),
-					Convert.toWei(new BigDecimal(contractConstructorData.getValue3()), Convert.Unit.ETHER).toBigInteger(),
-					contractConstructorData.getValue4(),
-					credentials.getAddress(),
-					contractConstructorData.getValue5()
+					EasyTotalizer.GAS_LIMIT
 				)
 			.sendAsync()
 			.thenAccept((easyTotalizer) -> {
-				showTotalizer(easyTotalizer.getContractAddress());
+				final String contractAddress = easyTotalizer.getContractAddress();
+				easyTotalizer.init(
+						contractConstructorData.getValue1(),
+						contractConstructorData.getValue2(),
+						Convert.toWei(new BigDecimal(contractConstructorData.getValue3()), Convert.Unit.ETHER).toBigInteger(),
+						contractConstructorData.getValue4(),
+						contractConstructorData.getValue5()
+						)
+					.sendAsync()
+					.thenAccept((transaction) -> {
+						showTotalizer(contractAddress);
+					})
+					.exceptionally(this::openErrorDialog);
 			})
 			.exceptionally(this::openErrorDialog);
 		}

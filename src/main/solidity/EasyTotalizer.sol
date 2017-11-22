@@ -1,5 +1,6 @@
 pragma solidity ^0.4.18;
 
+
 contract EasyTotalizer {
     
     struct Variant {
@@ -12,6 +13,8 @@ contract EasyTotalizer {
         bool paid;
         uint variant;
     }
+
+    uint public constant MAX_VARIANTS = 32;
     
     string public title;
     string public description;
@@ -26,7 +29,7 @@ contract EasyTotalizer {
     bool public isClosed;
     uint public payAmount;
     
-    event Closed();
+    event Closed(uint _winner);
     event BetMade(uint _variant);
     
     modifier variantExist(uint _variant) {
@@ -39,31 +42,34 @@ contract EasyTotalizer {
         _;
     }
     
+    function EasyTotalizer() public {
+        organizer = msg.sender;
+    }
+
     /**
-     * Construct new totalizer
+     * Initialize totalizer
      * 
      * @param _title Title of this event
      * @param _desc Description of this event
      * @param _minBet Minimum bet in wei
      * @param _percent Percentage of payment to the organizer
-     * @param _organizer Address of organizer
      * @param _variants Names list of variants
      */
-    function EasyTotalizer(
+    function init(
         string _title,
         string _desc,
         uint _minBet,
         uint8 _percent,
-        address _organizer,
         bytes32[] _variants
-    ) public
+    )
+        external
+        onlyOrganizer
     {
         title = _title;
         description = _desc;
         minimumBet = _minBet;
         percent = _percent;
-        organizer = _organizer;
-        for (uint i = 0; i < _variants.length; i++) {
+        for (uint i = 0; i < _variants.length && i < MAX_VARIANTS; i++) {
             variants.push(Variant({name: _variants[i], betsCount: 0}));
         }
     }
@@ -119,7 +125,7 @@ contract EasyTotalizer {
         uint organizerPaiment = calculatePayment();
         payAmount = (bank - organizerPaiment) / winner.betsCount;
         organizer.transfer(organizerPaiment);
-        Closed();
+        Closed(_winner);
     }
     
     function getVariantsCount() external constant returns(uint) {
