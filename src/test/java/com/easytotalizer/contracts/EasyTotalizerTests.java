@@ -241,7 +241,7 @@ public class EasyTotalizerTests {
 				BigInteger.valueOf(10),
 				variants
 			).send();
-		assertThat(easyTotalizer.isValid()).isEqualTo(true);
+		assertThat(easyTotalizer.isValid()).isTrue();
 	}
 
 	@Test
@@ -253,7 +253,7 @@ public class EasyTotalizerTests {
 				EasyTotalizer.GAS_PRICE,
 				EasyTotalizer.GAS_LIMIT
 			);
-		assertThat(easyTotalizer.isValid()).isEqualTo(true);
+		assertThat(easyTotalizer.isValid()).isTrue();
 	}
 	
 	@Test

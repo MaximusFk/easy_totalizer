@@ -1,4 +1,5 @@
-pragma solidity ^0.4.18;
+pragma solidity 0.4.18;
+import "./node_modules/zeppelin-solidity/contracts/math/SafeMath.sol";
 
 
 contract EasyTotalizer {
@@ -13,6 +14,8 @@ contract EasyTotalizer {
         bool paid;
         uint variant;
     }
+
+    using SafeMath for uint;
 
     uint public constant MAX_VARIANTS = 32;
     
@@ -89,7 +92,7 @@ contract EasyTotalizer {
         require(!bets[msg.sender].betted);
         
         bets[msg.sender] = Bet({betted: true, variant: _variant, paid: false});
-        bank += msg.value;
+        bank = bank.add(msg.value);
         variants[_variant].betsCount++;
         BetMade(_variant);
     }
@@ -123,7 +126,7 @@ contract EasyTotalizer {
         isClosed = true;
         winner = variants[_winner];
         uint organizerPaiment = calculatePayment();
-        payAmount = (bank - organizerPaiment) / winner.betsCount;
+        payAmount = bank.sub(organizerPaiment).div(winner.betsCount);
         organizer.transfer(organizerPaiment);
         Closed(_winner);
     }
@@ -133,12 +136,12 @@ contract EasyTotalizer {
     }
     
     function calculatePayment() internal constant returns(uint) {
-    	return bank / 100 * percent;
+    	return bank.mul(percent).div(100);
     }
     
     function kill() public onlyOrganizer {
         selfdestruct(msg.sender);
     }
     
-    function () public payable {}
+    function () public payable onlyOrganizer {}
 }
