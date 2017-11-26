@@ -30,6 +30,6 @@ task solCompiler(type: JavaExec) {
 
 	classpath = sourceSets.main.runtimeClasspath
 	main = 'com.easytotalizer.solidity.SolCompile'
-	args 'src/main/solidity'
+	args 'src/main/solidity/contracts'
 	args 'bin/solidity'
 }

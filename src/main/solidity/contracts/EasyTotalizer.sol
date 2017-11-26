@@ -1,5 +1,5 @@
 pragma solidity 0.4.18;
-import "./node_modules/zeppelin-solidity/contracts/math/SafeMath.sol";
+import "zeppelin-solidity/contracts/math/SafeMath.sol";
 
 
 contract EasyTotalizer {
